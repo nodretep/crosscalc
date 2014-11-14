@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stolen Calculation Engine.</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0"/>
+
+
+    <script type="text/javascript" src="lib/underscore-min.js"></script>
+    <script type="text/javascript" src="lib/jquery.js"></script>
+    <script type="text/javascript" src="lib/jquery.parsequery.min.js"></script>
+    <script type="text/javascript" src="lib/d3.v2.js"></script>
+    <script type="text/javascript" src="lib/numeral.min.js"></script>
+    <script type="text/javascript" src="lib/crossfilter.js"></script>
+    <script type="text/javascript" src="lib/jstat.js"></script>
+    <script type="text/javascript" src="lib/jsdiff.js"></script>
+    <script type="text/javascript" src="lib/hammer.min.js"></script>
+    <!-- Require should come as late as possible to minimize conflicts (eg. numericjs) -->
+    <script type="text/javascript" src="lib/require.js"></script>
+    <script type="text/javascript" src="lib/sap.viz.js"></script>
+	<script type="text/javascript" src="dataEngine.js"></script>
+  </head>
+  <body>
+
+	<script>
+        $(document).ready(function() {
+            $("#content").html("he there");
+			
+			 var data = [{"name":"target", "value":22}];
+			 var metadata = {
+					"title":"targetMeasureName",
+					"recordLevel":"value",
+					"fields":[
+							{"name":"target", "type":"attribute"},
+							{
+							
+								"aggregation": "sum",
+								"label": "Target value",
+								"name": "value",
+								"type": "measure"
+							}
+						]
+				};
+				
+			define(
+				[ "dataEngine"],
+				function run(dataEngine){
+					var dataSource = dataEngine().populate(data, metadata);
+				}
+			);
+        });
+
+    </script>
+	
+	<div id="content"></div>
+	
+  </body>
+</html>

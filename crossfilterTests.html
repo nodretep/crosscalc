@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stolen Calculation Engine.</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0"/>
+
+
+
+    <script type="text/javascript" src="lib/jquery.js"></script>
+    <script type="text/javascript" src="lib/jquery.parsequery.min.js"></script>
+    <script type="text/javascript" src="lib/crossfilter.js"></script>
+
+	<script>		
+	
+		var dataset;
+						
+		var dimensions = [];
+	
+		function totable(json) {
+
+			var html = "";
+
+				json.forEach(function(row) {
+					html += "<tr>";
+					for (key in row) {
+						  html += "<td>"+row[key]+"</td>";
+					};
+					html += "</tr>";
+
+				});
+
+			return "<table>" + html + "</table>";
+		}
+		
+		function setData(jsonData, attributes){
+			dataset = crossfilter(jsonData);
+			
+			//create one dimension per String/Other column
+			for(var i = 0; i < attributes.length; i++){
+				dimensions[i] = {name: attributes[i],
+						dimension:dataset.dimension(function(d) { return d[attributes[i]]; })
+					};
+			}
+		}
+		
+		/*
+			Filter is a set of attribute = value1,value1
+			e.g.
+			[
+				{
+					name:"country", 
+					values:["france"]
+				},
+				{
+					name:"city", 
+					values:["paris", "Lyon"]
+				}
+			]
+		*/
+		function aggregate(filter, column){
+			if(filter){
+				for(var i = 0; i < filter.length; i++){
+					if(dimensions[i].name === filter[i].name){					
+						dimensions[i].dimension.filterFunction(function(d){
+							for(var k = 0; k < filter[i].values.length; k++){
+								if(d === filter[i].values[k]){
+									return true;
+								}
+							}
+							return false;
+						});
+						
+					}
+				}
+			}
+			
+			var sum = dataset.groupAll().reduceSum(function(row) { return row[column]; }).value();
+			return sum;
+		}
+		
+		function clear(){
+			for(var i = 0; i < dimensions.length; i++){
+				dimensions[i].dimension.filterAll();
+			}
+		}
+		
+		
+		
+	</script>
+	
+  </head>
+  <body>
+
+	<script>
+	
+
+	
+	//http://blog.rusty.io/2012/09/17/crossfilter-tutorial/
+	//http://bl.ocks.org/phoebebright/3822981
+	
+        $(document).ready(function() {
+            
+			var attributes = ["country","city"];
+			
+			var jsonBlob = [
+				{target:100, country:"france", city:"paris"},
+				{target:200, country:"france", city:"lyon"},
+				{target:300, country:"england", city:"london"},
+				{target:50,  country:"england", city:"bath"},
+				{target:10,  country:"germany", city:"berlin"},
+				{target:20,  country:"germany", city:"waldorf"},
+			];
+			
+			setData(jsonBlob, attributes);
+
+			console.log(aggregate(null, "target"));
+			
+			console.log(aggregate(
+				[
+					{
+						name:"country", 
+						values:["france"]
+					}
+				], "target"));
+			
+			clear();
+			
+			console.log(aggregate(
+				[
+					{
+						name:"country", 
+						values:["france", "england"]
+					}
+				], "target"));
+				
+			clear();
+			
+			console.log(aggregate(
+				[
+					{
+						name:"country", 
+						values:["france"]
+					},
+					{
+						name:"city", 
+						values:["paris"]
+					}
+				], "target"));
+			
+			clear();
+			
+			console.log(aggregate(
+				[
+					{
+						name:"country", 
+						values:["france", "germany"]
+					},
+					{
+						name:"city", 
+						values:["paris", "berlin", "waldorf"]
+					}
+				], "target"));
+			
+			/*
+			// How many total legs are in my house?
+			var legs = dataset.groupAll().reduceSum(function(fact) { return fact.target; }).value()
+			console.log("There are " + legs + " legs in my house.") // 14						
+			
+			dimensions[0].filter("france");
+			
+			$("#content").html(totable(dimensions[0].top(Infinity))); 
+			
+			dimensions[1].filter("paris");
+			
+			legs = dataset.groupAll().reduceSum(function(d) { return d.target; }).value()
+			console.log("There are " + legs + " legs in my house.") // 14
+			
+			dimensions[0].filterAll();
+			dimensions[1].filterAll();
+			
+			$("#content").html(totable(dimensions[0].top(Infinity))); 
+			
+			legs = dataset.groupAll().reduceSum(function(d) { return d.target; }).value()
+			console.log("There are " + legs + " legs in my house.") // 14
+			*/
+			//// selects payments whose total is between 100 and 200
+		//	paymentsByTotal.filter(120); // selects payments whose total equals 120
+		//	paymentsByTotal.filter(function(d) { return d % 2; }); // selects payments whose total is odd
+		//	paymentsByTotal.filter(null); // selects all payments
+		
+		});
+
+    </script>
+	
+	<div id="content"></	div>
+	
+  </body>
+</html>
